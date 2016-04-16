@@ -20,3 +20,20 @@ Produces
     Transfer-Encoding: Identity
     
     {"requestId":null,"exceptionId":"757379ce-940e-43ca-86e4-7b76bb4fa233","httpStatusDescription":"Bad Request","path":"/problem","sessionId":"0116CD632B554C894FA9898E7E1AE4F7","helpLink":"http://link","message":"Something horrible happened","exceptionClass":"com.shedhack.exception.core.BusinessException","applicationName":"demo","metadata":"exception-core-model","httpStatusCode":400,"params":{"user":"imam"},"businessCodes":{"E100":"account locked."},"context":{"thread-name":"http-nio-8080-exec-1"},"exceptionChain":[{"correlationId":"757379ce-940e-43ca-86e4-7b76bb4fa233","message":"Something horrible happened"}],"dateTime":1460797504911}
+    
+Configuration
+    
+    @SpringBootApplication
+    @EnableExceptionController
+    public class Application {
+    
+        public static void main(String... args) {
+            SpringApplication.run(Application.class, args);
+        }
+    
+    }
+
+Properties
+    
+    spring.application.name=demo
+    api.help.path=http://link
