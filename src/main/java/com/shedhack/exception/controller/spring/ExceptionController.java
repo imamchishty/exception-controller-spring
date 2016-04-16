@@ -47,7 +47,7 @@ public class ExceptionController {
      * Handles {@link BusinessException}, the default HTTP code is HttpStatus.BAD_REQUEST
      * @param exception the exception thrown by a business service/controller.
      * @param request the initial HttpServletRequest
-     * @return ResponseEntity<ClientExceptionModel> client model contains suitable meta-data for clients to react accordingly.
+     * @return client model contains suitable meta-data for clients to react accordingly.
      */
     @ExceptionHandler({BusinessException.class})
     public ResponseEntity<ExceptionModel> handleServiceException(BusinessException exception, HttpServletRequest request) {
@@ -69,9 +69,9 @@ public class ExceptionController {
 
     /**
      * Default Exception Handler - returns HTTP 500
-     * @param exception
-     * @param request
-     * @return
+     * @param exception caught
+     * @param request original request
+     * @return exception model
      */
     @ExceptionHandler({Exception.class})
     public ResponseEntity<ExceptionModel> handleInvalidRequest(Exception exception, HttpServletRequest request) {
@@ -89,6 +89,12 @@ public class ExceptionController {
         return sendResponse(exceptionModel, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * Creates the response entity and sets the HTTP headers, including HEADER_EXCEPTION_ID_KEY
+     * @param model exception wrapper
+     * @param status status code
+     * @return ExceptionModel
+     */
     public ResponseEntity<ExceptionModel> sendResponse(ExceptionModel model, HttpStatus status) {
 
         MultiValueMap<String, Object> headers = new LinkedMultiValueMap<>();
@@ -102,8 +108,8 @@ public class ExceptionController {
 
     /**
      * Logs to a file (at ERROR level), uses sl4j.
-     * @param exceptionModel
-     * @param exception
+     * @param exceptionModel model
+     * @param exception exception
      */
     public void log(ExceptionModel exceptionModel, Exception exception) {
         logger.error(exceptionModel.toString(), exception);
@@ -129,6 +135,11 @@ public class ExceptionController {
         return map;
     }
 
+    /**
+     * Determines the status code from the exception
+     * @param exception caught exception
+     * @return status code
+     */
     private int determineHttpCode(BusinessException exception) {
 
         if(exception.getHttpCode() != null) {
@@ -139,6 +150,11 @@ public class ExceptionController {
         return HttpStatus.BAD_REQUEST.value();
     }
 
+    /**
+     * Based on the status code sets the http status description
+     * @param exception caught exception
+     * @return description of the status code.
+     */
     private String determineHttpDescription(BusinessException exception) {
 
         if(exception.getHttpCode() != null) {
@@ -151,6 +167,7 @@ public class ExceptionController {
 
     /**
      * Uses {@link RequestThreadLocalHelper} under the assumption that this has been set, defaults to null.
+     * @return request id
      */
     public String determineRequestId() {
 
@@ -163,6 +180,7 @@ public class ExceptionController {
 
     /**
      * Returns the current thread name, this is usually a good place to set contextual details.
+     * @return thread context
      */
     public String determineThreadContext() {
         return Thread.currentThread().getName();
