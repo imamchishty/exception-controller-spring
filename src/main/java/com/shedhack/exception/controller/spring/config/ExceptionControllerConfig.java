@@ -1,6 +1,8 @@
 package com.shedhack.exception.controller.spring.config;
 
 import com.shedhack.exception.controller.spring.ExceptionController;
+import com.shedhack.exception.controller.spring.ExceptionInterceptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,9 +25,12 @@ public class ExceptionControllerConfig {
     @Value("${api.help.path:}")
     private String helpLink;
 
+    @Autowired(required = false)
+    private ExceptionInterceptor helper;
+
     @Bean
     public ExceptionController exceptionController() {
-        return new ExceptionController(appName, helpLink);
+        return new ExceptionController(appName, helpLink, helper);
     }
 
 }

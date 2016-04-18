@@ -66,6 +66,10 @@ public class ControllerIntegrationTest {
 		assertThat(response.getHeaders().get("Exception-Id"), notNullValue());
 		assertThat(response.getHeaders().get("Exception-Id").toString(), equalTo("["+response.getBody().getExceptionId()+"]"));
 		assertThat(response.getHeaders().get("Exception-Type"), notNullValue());
+
+		// check the exception count
+		assertThat(ExceptionController.getExceptionCount(), equalTo(1));
+
 	}
 
 	private URL makeURL(String path) throws Exception {

@@ -37,3 +37,13 @@ Properties
     
     spring.application.name=demo
     api.help.path=http://link
+    
+    
+Exceptions Count
+    
+    int getExceptionCount()
+    
+    
+ExceptionHelper helper
+    
+    void handle(ExceptionModel model, Exception exception);

@@ -15,11 +15,16 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * <pre>
  *     Controller is responsible for handling all exceptions.
- *     In all circumstances the client is responded to with a ClientExceptionModel.
+ *     In all circumstances the client is responded to with a {@link ExceptionModel}.
+ *
+ *     {@link ExceptionInterceptor} is called allowing an easy way to access the {@link ExceptionModel}
+ *     and the original exception. You simply implement this and make it available in the
+ *     Spring Context, if not available then no interceptor will be called.
  * </pre>
  */
 @ControllerAdvice
@@ -37,10 +42,14 @@ public class ExceptionController {
 
     private static final String HEADER_EXCEPTION_ID_KEY = "Exception-Id";
 
+    private static AtomicInteger EXCEPTION_COUNT = new AtomicInteger(0);
 
-    public ExceptionController(String applicationName, String helpLink) {
+    private final ExceptionInterceptor interceptor;
+
+    public ExceptionController(String applicationName, String helpLink, ExceptionInterceptor interceptor) {
         this.applicationName = applicationName;
         this.helpLink = helpLink;
+        this.interceptor = interceptor;
     }
 
     /**
@@ -63,6 +72,7 @@ public class ExceptionController {
                 .build();
 
         log(exceptionModel, exception);
+        intercept(exceptionModel, exception);
 
         return sendResponse(exceptionModel, HttpStatus.BAD_REQUEST);
     }
@@ -85,8 +95,15 @@ public class ExceptionController {
                 .build();
 
         log(exceptionModel, exception);
+        intercept(exceptionModel, exception);
 
         return sendResponse(exceptionModel, HttpStatus.BAD_REQUEST);
+    }
+
+    private void intercept(ExceptionModel exceptionModel, Exception exception) {
+        if(interceptor !=null) {
+            interceptor.handle(exceptionModel, exception);
+        }
     }
 
     /**
@@ -102,9 +119,10 @@ public class ExceptionController {
         headers.add(HEADER_EXCEPTION_TYPE_KEY, HEADER_EXCEPTION_TYPE_VAL);
         headers.add(HEADER_EXCEPTION_ID_KEY, model.getExceptionId());
 
+        incrementExceptionCount();
+
         return new ResponseEntity(model, headers, status);
     }
-
 
     /**
      * Logs to a file (at ERROR level), uses sl4j.
@@ -186,4 +204,18 @@ public class ExceptionController {
         return Thread.currentThread().getName();
     }
 
+    /**
+     * Count of exceptions caught.
+     * @return the current exception count
+     */
+    public static int getExceptionCount() {
+        return EXCEPTION_COUNT.get();
+    }
+
+    /**
+     * Increments the number of exceptions.
+     */
+    protected static void incrementExceptionCount() {
+        EXCEPTION_COUNT.incrementAndGet();
+    }
 }
