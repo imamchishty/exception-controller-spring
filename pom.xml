@@ -4,7 +4,7 @@
 
     <groupId>com.shedhack.exception</groupId>
     <artifactId>exception-controller-spring</artifactId>
-    <version>1.0.7-SNAPSHOT</version>
+    <version>1.0.8-SNAPSHOT</version>
 
     <description>Global Exception Handler for Spring.</description>
     <url>https://github.com/imamchishty/exception-controller-spring</url>
