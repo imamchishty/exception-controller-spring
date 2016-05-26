@@ -81,13 +81,7 @@
         <dependency>
             <groupId>com.shedhack.exception</groupId>
             <artifactId>exception-core</artifactId>
-            <version>1.0.5</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.shedhack.trace</groupId>
-            <artifactId>trace-request-api</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.6</version>
         </dependency>
 
         <dependency>

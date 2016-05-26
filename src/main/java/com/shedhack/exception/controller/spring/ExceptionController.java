@@ -2,7 +2,6 @@ package com.shedhack.exception.controller.spring;
 
 import com.shedhack.exception.core.BusinessException;
 import com.shedhack.exception.core.ExceptionModel;
-import com.shedhack.trace.request.api.threadlocal.RequestThreadLocalHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -36,11 +35,15 @@ public class ExceptionController {
 
     private static final String THREAD_CONTEXT = "thread-name";
 
-    private static final String HEADER_EXCEPTION_TYPE_KEY =  "Exception-Type";
+    private static final String HEADER_EXCEPTION_TYPE_KEY =  "exception-type";
 
-    private static final String HEADER_EXCEPTION_TYPE_VAL = "ExceptionModel";
+    private static final String HEADER_EXCEPTION_TYPE_VAL = "exception-model";
 
-    private static final String HEADER_EXCEPTION_ID_KEY = "Exception-Id";
+    private static final String HEADER_EXCEPTION_ID_KEY = "exception-id";
+
+    private static final String HEADER_REQUEST_ID_KEY = "request-id";
+
+    private static final String HEADER_GROUP_ID_KEY = "group-id";
 
     private static AtomicInteger EXCEPTION_COUNT = new AtomicInteger(0);
 
@@ -68,7 +71,8 @@ public class ExceptionController {
                 .withSessionId(request.getSession().getId())
                 .withParams(exception.getParams().isEmpty() ? mapParamsFromRequest(request.getParameterMap()) : exception.getParams())
                 .withHttpCode(determineHttpCode(exception), determineHttpDescription(exception))
-                .withHelpLink(helpLink).withRequestId(determineRequestId()).withContext(THREAD_CONTEXT, determineThreadContext())
+                .withHelpLink(helpLink).withRequestId(determineRequestId(request)).withContext(THREAD_CONTEXT, determineThreadContext())
+                .withGroupId(determinGroupId(request))
                 .build();
 
         log(exceptionModel, exception);
@@ -91,7 +95,8 @@ public class ExceptionController {
                 .withSessionId(request.getSession().getId())
                 .withParams(mapParamsFromRequest(request.getParameterMap()))
                 .withHttpCode(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
-                .withHelpLink(helpLink).withRequestId(determineRequestId()).withContext(THREAD_CONTEXT, determineThreadContext())
+                .withHelpLink(helpLink).withRequestId(determineRequestId(request)).withContext(THREAD_CONTEXT, determineThreadContext())
+                .withGroupId(determinGroupId(request))
                 .build();
 
         log(exceptionModel, exception);
@@ -184,17 +189,22 @@ public class ExceptionController {
     }
 
     /**
-     * Uses {@link RequestThreadLocalHelper} under the assumption that this has been set, defaults to null.
+     * Searches for request-id header in the original request.
      * @return request id
      */
-    public String determineRequestId() {
+    public String determineRequestId(HttpServletRequest request) {
 
-        if(RequestThreadLocalHelper.get() != null && RequestThreadLocalHelper.get().getRequestId() != null) {
-            return RequestThreadLocalHelper.get().getRequestId();
-        }
-
-        return null;
+        return request.getHeader(HEADER_REQUEST_ID_KEY);
     }
+
+    /**
+     * Searches for group-id header in the original request.
+     * @return group id
+     */
+    public String determinGroupId(HttpServletRequest request) {
+        return request.getHeader(HEADER_GROUP_ID_KEY);
+    }
+
 
     /**
      * Returns the current thread name, this is usually a good place to set contextual details.
