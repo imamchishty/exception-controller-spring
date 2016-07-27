@@ -58,14 +58,14 @@ public class ControllerIntegrationTest {
 		assertThat(response.getBody().getParams(), hasKey("user"));
 		assertThat(response.getBody().getParams().get("user"), Matchers.<Object>equalTo("imam"));
 		assertThat(response.getBody().getBusinessCodes(), hasKey("E100"));
-		assertThat(response.getBody().getContext(), hasKey("thread-name"));
+		assertThat(response.getBody().getContext(), hasKey("threadName"));
 		assertThat(response.getBody().getDateTime(), notNullValue());
 		assertThat(response.getBody().getExceptionChain(), notNullValue());
 
 		// header
-		assertThat(response.getHeaders().get("Exception-Id"), notNullValue());
-		assertThat(response.getHeaders().get("Exception-Id").toString(), equalTo("["+response.getBody().getExceptionId()+"]"));
-		assertThat(response.getHeaders().get("Exception-Type"), notNullValue());
+		assertThat(response.getHeaders().get("exceptionId"), notNullValue());
+		assertThat(response.getHeaders().get("exceptionId").toString(), equalTo("["+response.getBody().getExceptionId()+"]"));
+		assertThat(response.getHeaders().get("exceptionType"), notNullValue());
 
 		// check the exception count
 		assertThat(ExceptionController.getExceptionCount(), equalTo(1));

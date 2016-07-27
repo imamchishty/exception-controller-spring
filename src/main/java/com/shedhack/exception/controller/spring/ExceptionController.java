@@ -1,5 +1,6 @@
 package com.shedhack.exception.controller.spring;
 
+import com.google.gson.Gson;
 import com.shedhack.exception.core.BusinessException;
 import com.shedhack.exception.core.ExceptionModel;
 import org.slf4j.Logger;
@@ -31,28 +32,38 @@ public class ExceptionController {
 
     private static final Logger logger = LoggerFactory.getLogger(ExceptionController.class);
 
-    private final String applicationName, helpLink;
+    private final String applicationId, helpLink;
 
-    private static final String THREAD_CONTEXT = "thread-name";
+    private Gson gson;
 
-    private static final String HEADER_EXCEPTION_TYPE_KEY =  "exception-type";
+    private static final String THREAD_CONTEXT = "threadName";
 
-    private static final String HEADER_EXCEPTION_TYPE_VAL = "exception-model";
+    private static final String HEADER_EXCEPTION_TYPE_KEY =  "exceptionType";
 
-    private static final String HEADER_EXCEPTION_ID_KEY = "exception-id";
+    private static final String HEADER_EXCEPTION_TYPE_VAL = "exceptionModel";
 
-    private static final String HEADER_REQUEST_ID_KEY = "request-id";
+    private static final String HEADER_EXCEPTION_ID_KEY = "exceptionId";
 
-    private static final String HEADER_GROUP_ID_KEY = "group-id";
+    private static final String HEADER_REQUEST_ID_KEY = "requestId";
+
+    private static final String HEADER_GROUP_ID_KEY = "groupId";
 
     private static AtomicInteger EXCEPTION_COUNT = new AtomicInteger(0);
 
     private final ExceptionInterceptor interceptor;
 
-    public ExceptionController(String applicationName, String helpLink, ExceptionInterceptor interceptor) {
-        this.applicationName = applicationName;
+    public ExceptionController(String applicationId, String helpLink, ExceptionInterceptor interceptor, Gson gson) {
+        this.applicationId = applicationId;
         this.helpLink = helpLink;
         this.interceptor = interceptor;
+
+        // autowired required=false
+        if(gson == null) {
+            this.gson = new Gson();
+        }
+        else {
+            this.gson = gson;
+        }
     }
 
     /**
@@ -66,7 +77,7 @@ public class ExceptionController {
 
         // Will set the exception ID as well as business codes - IF either are found. Will create new exception ID if missing.
 
-        ExceptionModel exceptionModel =  ExceptionModel.builder(applicationName, exception)
+        ExceptionModel exceptionModel =  ExceptionModel.builder(applicationId, exception)
                 .withPath(request.getRequestURI())
                 .withSessionId(request.getSession().getId())
                 .withParams(exception.getParams().isEmpty() ? mapParamsFromRequest(request.getParameterMap()) : exception.getParams())
@@ -90,7 +101,7 @@ public class ExceptionController {
     @ExceptionHandler({Exception.class})
     public ResponseEntity<ExceptionModel> handleInvalidRequest(Exception exception, HttpServletRequest request) {
 
-        ExceptionModel exceptionModel =  ExceptionModel.builder(applicationName, exception)
+        ExceptionModel exceptionModel =  ExceptionModel.builder(applicationId, exception)
                 .withPath(request.getRequestURI())
                 .withSessionId(request.getSession().getId())
                 .withParams(mapParamsFromRequest(request.getParameterMap()))
@@ -135,7 +146,7 @@ public class ExceptionController {
      * @param exception exception
      */
     public void log(ExceptionModel exceptionModel, Exception exception) {
-        logger.error(exceptionModel.toString(), exception);
+        logger.error(gson.toJson(exceptionModel), exception);
     }
 
     // --------------

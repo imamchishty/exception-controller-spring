@@ -1,5 +1,6 @@
 package com.shedhack.exception.controller.spring.config;
 
+import com.google.gson.Gson;
 import com.shedhack.exception.controller.spring.ExceptionController;
 import com.shedhack.exception.controller.spring.ExceptionInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,9 +29,12 @@ public class ExceptionControllerConfig {
     @Autowired(required = false)
     private ExceptionInterceptor helper;
 
+    @Autowired(required = false)
+    private Gson gson;
+
     @Bean
     public ExceptionController exceptionController() {
-        return new ExceptionController(appName, helpLink, helper);
+        return new ExceptionController(appName, helpLink, helper, gson);
     }
 
 }

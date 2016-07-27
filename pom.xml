@@ -90,6 +90,13 @@
             <version>1.7.21</version>
         </dependency>
 
+        <!-- Json for error log message -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.7</version>
+        </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
