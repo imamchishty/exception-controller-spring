@@ -62,6 +62,9 @@ public class ControllerIntegrationTest {
 		assertThat(response.getBody().getDateTime(), notNullValue());
 		assertThat(response.getBody().getExceptionChain(), notNullValue());
 
+        // The test interceptor should have added 'hello' as a param
+        assertThat(response.getBody().getParams().get("hello"), equalTo("world"));
+
 		// header
 		assertThat(response.getHeaders().get("exceptionId"), notNullValue());
 		assertThat(response.getHeaders().get("exceptionId").toString(), equalTo("["+response.getBody().getExceptionId()+"]"));

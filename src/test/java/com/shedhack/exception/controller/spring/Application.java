@@ -22,4 +22,8 @@ public class Application {
         return new Gson();
     }
 
+    @Bean
+    public TestExceptionInterceptor testExceptionInterceptor() {
+        return new TestExceptionInterceptor();
+    }
 }

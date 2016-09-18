@@ -23,7 +23,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     In all circumstances the client is responded to with a {@link ExceptionModel}.
  *
  *     {@link ExceptionInterceptor} is called allowing an easy way to access the {@link ExceptionModel}
- *     and the original exception. You simply implement this and make it available in the
+ *     and the original exception. The interceptor is called before the logger.
+ *     You simply implement this and make it available in the
  *     Spring Context, if not available then no interceptor will be called.
  * </pre>
  */
@@ -33,6 +34,8 @@ public class ExceptionController {
     private static final Logger logger = LoggerFactory.getLogger(ExceptionController.class);
 
     private final String applicationId, helpLink;
+
+    private final boolean intercept;
 
     private Gson gson;
 
@@ -56,6 +59,7 @@ public class ExceptionController {
         this.applicationId = applicationId;
         this.helpLink = helpLink;
         this.interceptor = interceptor;
+        this.intercept = interceptor != null;
 
         // autowired required=false
         if(gson == null) {
@@ -86,8 +90,7 @@ public class ExceptionController {
                 .withGroupId(determinGroupId(request))
                 .build();
 
-        log(exceptionModel, exception);
-        intercept(exceptionModel, exception);
+        interceptAndLog(exceptionModel, exception);
 
         return sendResponse(exceptionModel, HttpStatus.BAD_REQUEST);
     }
@@ -110,14 +113,18 @@ public class ExceptionController {
                 .withGroupId(determinGroupId(request))
                 .build();
 
-        log(exceptionModel, exception);
-        intercept(exceptionModel, exception);
+        interceptAndLog(exceptionModel, exception);
 
         return sendResponse(exceptionModel, HttpStatus.BAD_REQUEST);
     }
 
+    private void interceptAndLog(ExceptionModel exceptionModel, Exception exception) {
+        intercept(exceptionModel, exception);
+        log(exceptionModel, exception);
+    }
+
     private void intercept(ExceptionModel exceptionModel, Exception exception) {
-        if(interceptor !=null) {
+        if(intercept) {
             interceptor.handle(exceptionModel, exception);
         }
     }
