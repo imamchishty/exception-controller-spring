@@ -5,6 +5,9 @@
 ## Introduction
 This component is a flexible, generic exception handler for spring applications. This produces a consistent response type for exceptional circumstances.
 
+## The exception model
+The exception model returned has been taken from [exception-core](https://github.com/imamchishty/exception-core).
+
 ## Configuration
 1. Simply add the following annotation to your configuration class:
 
