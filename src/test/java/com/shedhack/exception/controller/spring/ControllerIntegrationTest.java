@@ -45,7 +45,7 @@ public class ControllerIntegrationTest {
 
 		// body
 		assertThat(response.getBody().getApplicationName(), equalTo("demo"));
-		assertThat(response.getBody().getRequestId(), isEmptyOrNullString());
+		assertThat(response.getBody().getSpanId(), isEmptyOrNullString());
 		assertThat(response.getBody().getExceptionId(), notNullValue());
 		assertThat(response.getBody().getHttpStatusDescription(), equalTo("Bad Request"));
 		assertThat(response.getBody().getPath(), equalTo("/problem"));

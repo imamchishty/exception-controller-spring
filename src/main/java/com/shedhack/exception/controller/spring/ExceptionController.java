@@ -3,6 +3,7 @@ package com.shedhack.exception.controller.spring;
 import com.google.gson.Gson;
 import com.shedhack.exception.core.BusinessException;
 import com.shedhack.exception.core.ExceptionModel;
+import com.shedhack.trace.request.api.threadlocal.RequestThreadLocalHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -13,8 +14,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -47,19 +47,21 @@ public class ExceptionController {
 
     private static final String HEADER_EXCEPTION_ID_KEY = "exceptionId";
 
-    private static final String HEADER_REQUEST_ID_KEY = "requestId";
+    private static final String HEADER_TRACE_ID_KEY = "X-B3-TraceId";
 
-    private static final String HEADER_GROUP_ID_KEY = "groupId";
+    private static final String HEADER_SPAN_ID_KEY = "X-B3-SpanId";
 
     private static AtomicInteger EXCEPTION_COUNT = new AtomicInteger(0);
 
-    private final ExceptionInterceptor interceptor;
+    private final List<ExceptionInterceptor> interceptors;
 
-    public ExceptionController(String applicationId, String helpLink, ExceptionInterceptor interceptor, Gson gson) {
+    public ExceptionController(String applicationId, String helpLink, List<ExceptionInterceptor> interceptors, Gson gson) {
+
         this.applicationId = applicationId;
         this.helpLink = helpLink;
-        this.interceptor = interceptor;
-        this.intercept = interceptor != null;
+
+        this.intercept = interceptors != null && !interceptors.isEmpty();
+        this.interceptors = interceptors;
 
         // autowired required=false
         if(gson == null) {
@@ -69,6 +71,7 @@ public class ExceptionController {
             this.gson = gson;
         }
     }
+
 
     /**
      * Handles {@link BusinessException}, the default HTTP code is HttpStatus.BAD_REQUEST
@@ -86,8 +89,8 @@ public class ExceptionController {
                 .withSessionId(request.getSession().getId())
                 .withParams(exception.getParams().isEmpty() ? mapParamsFromRequest(request.getParameterMap()) : exception.getParams())
                 .withHttpCode(determineHttpCode(exception), determineHttpDescription(exception))
-                .withHelpLink(helpLink).withRequestId(determineRequestId(request)).withContext(THREAD_CONTEXT, determineThreadContext())
-                .withGroupId(determinGroupId(request))
+                .withHelpLink(helpLink).withSpanId(determineSpanId(request)).withContext(THREAD_CONTEXT, determineThreadContext())
+                .withTraceId(determineTraceId(request))
                 .build();
 
         interceptAndLog(exceptionModel, exception);
@@ -109,8 +112,8 @@ public class ExceptionController {
                 .withSessionId(request.getSession().getId())
                 .withParams(mapParamsFromRequest(request.getParameterMap()))
                 .withHttpCode(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
-                .withHelpLink(helpLink).withRequestId(determineRequestId(request)).withContext(THREAD_CONTEXT, determineThreadContext())
-                .withGroupId(determinGroupId(request))
+                .withHelpLink(helpLink).withSpanId(determineSpanId(request)).withContext(THREAD_CONTEXT, determineThreadContext())
+                .withTraceId(determineTraceId(request))
                 .build();
 
         interceptAndLog(exceptionModel, exception);
@@ -125,7 +128,9 @@ public class ExceptionController {
 
     private void intercept(ExceptionModel exceptionModel, Exception exception) {
         if(intercept) {
-            interceptor.handle(exceptionModel, exception);
+            for (ExceptionInterceptor interceptor : interceptors){
+                interceptor.handle(exceptionModel, exception);
+            }
         }
     }
 
@@ -207,20 +212,39 @@ public class ExceptionController {
     }
 
     /**
-     * Searches for request-id header in the original request.
+     * Searches for span-id header in the original request.
      * @return request id
      */
-    public String determineRequestId(HttpServletRequest request) {
+    public String determineSpanId(HttpServletRequest request) {
 
-        return request.getHeader(HEADER_REQUEST_ID_KEY);
+        String id = request.getHeader(HEADER_TRACE_ID_KEY);
+
+        if(id == null) {
+
+            if (RequestThreadLocalHelper.get() != null) {
+                return RequestThreadLocalHelper.get().getSpanId();
+            }
+        }
+
+        return id;
     }
 
     /**
-     * Searches for group-id header in the original request.
+     * Searches for trace-id header in the original request.
      * @return group id
      */
-    public String determinGroupId(HttpServletRequest request) {
-        return request.getHeader(HEADER_GROUP_ID_KEY);
+    public String determineTraceId(HttpServletRequest request) {
+
+        String id = request.getHeader(HEADER_SPAN_ID_KEY);
+
+        if(id == null) {
+
+            if (RequestThreadLocalHelper.get() != null) {
+                return RequestThreadLocalHelper.get().getTraceId();
+            }
+        }
+
+        return id;
     }
 
 

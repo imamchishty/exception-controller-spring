@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 /**
  * Provides default configuration of the exception controller.
  * Requires the following props to be available:
@@ -27,14 +29,14 @@ public class ExceptionControllerConfig {
     private String helpLink;
 
     @Autowired(required = false)
-    private ExceptionInterceptor helper;
+    private List<ExceptionInterceptor> helpers;
 
     @Autowired(required = false)
     private Gson gson;
 
     @Bean
     public ExceptionController exceptionController() {
-        return new ExceptionController(appName, helpLink, helper, gson);
+        return new ExceptionController(appName, helpLink, helpers, gson);
     }
 
 }
