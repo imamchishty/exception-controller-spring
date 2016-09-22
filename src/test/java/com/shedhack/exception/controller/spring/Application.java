@@ -26,7 +26,7 @@ public class Application {
     }
 
     @Bean
-    public List<ExceptionInterceptor> interceptors () {
+    public List<ExceptionInterceptor> exceptionInterceptors () {
         return Arrays.asList(new TestExceptionInterceptor());
     }
 }
