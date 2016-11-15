@@ -1,7 +1,9 @@
 package com.shedhack.exception.controller.spring;
 
 import com.google.gson.Gson;
+import com.shedhack.exception.controller.spring.threadcontext.ThreadContextModel;
 import com.shedhack.exception.core.BusinessException;
+import com.shedhack.exception.core.ExceptionChainModel;
 import com.shedhack.exception.core.ExceptionModel;
 import com.shedhack.trace.request.api.threadlocal.RequestThreadLocalHelper;
 import org.slf4j.Logger;
@@ -252,7 +254,16 @@ public class ExceptionController {
      * Returns the current thread name, this is usually a good place to set contextual details.
      * @return thread context
      */
-    public String determineThreadContext() {
+    public Object determineThreadContext() {
+
+        // If the client is using @ThreadContext then we might have a json string already available
+        try {
+            return gson.fromJson(Thread.currentThread().getName(), ThreadContextModel.class);
+        }
+        catch (Exception ex) {
+            // can't do much
+        }
+
         return Thread.currentThread().getName();
     }
 
